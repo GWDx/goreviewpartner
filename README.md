@@ -1,6 +1,19 @@
 ![Go Review Partner logo](http://yuntingdian.com/goreviewpartner/grp-documentation/img/goreviewpartner.png "Go Review Partner logo")
 
-# goreviewpartner
+# goreviewpartner (KataGo)
+
+forked from [pnprog/goreviewpartner](https://github.com/pnprog/goreviewpartner)
+
+In this version, KataGo can be used to analyze. But there may exist errors.
+
+## how to use
+Download the source code and use python version 2 to run.
+
+
+
+
+# Introduction to goreviewpartner
+
 A tool to help analyse and review your games of Go ([weiqi, baduk, igo](https://en.wikipedia.org/wiki/Go_(game))) using bots. Currently supporting [Leela Zero](https://github.com/gcp/leela-zero/), [AQ](https://github.com/ymgaq/AQ), [Pachi](https://github.com/pasky/pachi), [PhoenixGo](https://github.com/Tencent/PhoenixGo/), [Leela](https://www.sjeng.org/leela.html), [Ray](https://github.com/zakki/Ray) and [GnuGo](https://www.gnu.org/software/gnugo/).
 
 Project home page: [http://yuntingdian.com/goreviewpartner/](http://yuntingdian.com/goreviewpartner/).

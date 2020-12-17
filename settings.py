@@ -9,6 +9,9 @@ from aq_analysis import AQSettings
 from leela_zero_analysis import LeelaZeroSettings
 from pachi_analysis import PachiSettings
 from phoenixgo_analysis import PhoenixGoSettings
+
+from kata_analysis import KataSettings
+
 from gtp_bot import GtpBotSettings
 from toolbox import *
 from toolbox import _
@@ -18,7 +21,7 @@ class OpenSettings(Toplevel):
 		if self.setting_frame:
 			self.setting_frame.pack_forget()
 		
-		settings_dict={"GRP":self.display_GRP_settings, "AQ":AQSettings, "GnuGo":GnuGoSettings, "Leela":LeelaSettings, "Ray":RaySettings, "Leela Zero":LeelaZeroSettings, "Pachi":PachiSettings, "PhoenixGo":PhoenixGoSettings, "GtpBot": GtpBotSettings}
+		settings_dict={"GRP":self.display_GRP_settings, "AQ":AQSettings, "GnuGo":GnuGoSettings, "Leela":LeelaSettings, "Ray":RaySettings, "Leela Zero":LeelaZeroSettings, "Kata":KataSettings, "Pachi":PachiSettings, "PhoenixGo":PhoenixGoSettings, "GtpBot": GtpBotSettings}
 		
 		self.setting_frame=Frame(self.right_column)
 		self.setting_frame.parent=self
@@ -174,6 +177,7 @@ class OpenSettings(Toplevel):
 		Radiobutton(left_column, text="Leela",command=self.display_settings,variable=self.setting_mode, value="Leela",indicatoron=0).pack(side=TOP, fill=X)
 		Radiobutton(left_column, text="Ray",command=self.display_settings,variable=self.setting_mode, value="Ray",indicatoron=0).pack(side=TOP, fill=X)
 		Radiobutton(left_column, text="Leela Zero",command=self.display_settings,variable=self.setting_mode, value="Leela Zero",indicatoron=0).pack(side=TOP, fill=X)
+		Radiobutton(left_column, text="Kata",command=self.display_settings,variable=self.setting_mode, value="Kata",indicatoron=0).pack(side=TOP, fill=X)
 		Radiobutton(left_column, text="Pachi",command=self.display_settings,variable=self.setting_mode, value="Pachi",indicatoron=0).pack(side=TOP, fill=X)
 		Radiobutton(left_column, text="PhoenixGo",command=self.display_settings,variable=self.setting_mode, value="PhoenixGo",indicatoron=0).pack(side=TOP, fill=X)
 		Radiobutton(left_column, text="GTP bots",command=self.display_settings,variable=self.setting_mode, value="GtpBot",indicatoron=0).pack(side=TOP, fill=X)
