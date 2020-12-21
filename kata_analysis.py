@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from katagtp import katagtp
+from gtp import gtp
 import sys
 from time import sleep
 from Tkinter import *
@@ -23,71 +23,30 @@ class KataAnalysis():
 		
         ##KATAGO.EXE
 		#additional_comments=""
-		Kata.komiset()
+		Kata.write("komi 6.5")
+
 		if player_color in ('w',"W"):
 			log("Kata play white")
-			Kata.analyze_white()
+			Kata.write("kata-genmove_analyze white")
 		else:
 			log("Kata play black")
-			Kata.analyze_black()
-
-		if current_move>1:
-			es=Kata.final_score()
-			node_set(one_move,"ES",es)
+			Kata.write("kata-genmove_analyze black")
 		
 		position_evaluation=Kata.get_all_Kata_moves()
 		
 		answer=position_evaluation['move']
-		Kata.appendAns(player_color,answer)
+		Kata.history.append([player_color.lower(),answer])
 		
-		if (answer in ["PASS","RESIGN"]):
-			Kata.undo()
-		else:
-			#let's make sure there is at least one variation available
-			# if len(position_evaluation['variations'])==0:
-			# 	position_evaluation['variations'].append({'sequence':answer})
-			
-			nb_undos=1 #let's remember to undo that move from Leela Zero
+		
+		if current_move>1:
+			es=Kata.final_score()
+			log(es)
+			node_set(one_move,"ES",es)
 
-			#let's make sure that there is more than one move for the first line of play
-			#only one move could be a bookmove, or a very very forcing move
-			first_sequence=position_evaluation['variations'][0]['sequence']
-			new_sequence=first_sequence
-			"""
-			while len(new_sequence.split())<=1 and nb_undos<=5:
-				log("first, let's ask Katago for the next move")
-				if player_color in ('w',"W") and nb_undos%2==0:
-					answer=Kata.play_white()
-				elif player_color in ('w',"W") and nb_undos%2==1:
-					answer=Kata.play_black()
-				elif player_color not in ('w',"W") and nb_undos%2==0:
-					answer=Kata.play_black()
-				else:
-					answer=Kata.play_white()
-				nb_undos+=1 #one have to remember to undo that move later
-				
-				new_position_evaluation=Kata.get_all_Kata_moves() #let's get stats for this new move
-				
-				#let's make sure there is at least one variation available
-				if len(new_position_evaluation['variations'])==0:
-					new_position_evaluation['variations'].append({'sequence':answer})
-				
-				# if (answer not in ["PASS","RESIGN"]):
-				# 	#let's check the lenght of the new sequence
-				# 	new_sequence=new_position_evaluation["variations"][0]["sequence"]
-				# 	#adding this new sequence to the old sequence
-				# 	position_evaluation['variations'][0]['sequence']+=" "+new_sequence
 
-				else:
-					#Katago does not want to play further on this line of play
-					#so let's stop there
-					break
-			"""
-			for u in range(nb_undos):
-				#log("undo...")
-				Kata.undo()
+		Kata.undo()
 			
-		log(len(answer),"sequences")
+		# log(len(answer),"sequences")
 		best_answer=answer
 		node_set(one_move,"CBM",answer) #Computer Best Move
 
@@ -125,6 +84,8 @@ class KataAnalysis():
 
 					if 'score' in variation:
 						node_set(new_child,"ES",variation['score'])
+						# if best_move:
+						# 	node_set(one_move,"ES",variation['score'])
 
 					if 'playouts' in variation:
 						node_set(new_child,"PLYO",variation['playouts'])
@@ -180,7 +141,7 @@ class Position(dict):
 class Variation(dict):
 	pass
 
-class Kata_gtp(katagtp):
+class Kata_gtp(gtp):
 
 	def __init__(self,command):
 		self.c=1
@@ -245,27 +206,27 @@ class Kata_gtp(katagtp):
 				return
 
 	def quick_evaluation(self,color):
-		
 		if color==2:
-			answer=self.play_white()
+			self.play_white()
 		else:
-			answer=self.play_black()
+			self.play_black()
+		position_evaluation=self.get_all_Kata_moves()
+		self.undo()
 		
-		unused,unused,unused,unused,unused,win,unused=answer[0]
-		
-		txt=""
-		if win:
-			if color==1:
-				winrate=str(float(win))+'%/'+str(100-float(win))+'%'
-			else:
-				winrate=str(100-float(win))+'%/'+str(win)+'%'
-			txt+= variation_data_formating["BWWR"]%winrate
-
+		if color==1:
+			black_win_rate=position_evaluation["variations"][0]["value network win rate"]
+			white_win_rate=opposite_rate(black_win_rate)
+		else:
+			white_win_rate=position_evaluation["variations"][0]["value network win rate"]
+			black_win_rate=opposite_rate(white_win_rate)
+		txt=variation_data_formating["VNWR"]%(black_win_rate+'/'+white_win_rate)
+		txt+="\n\n"+variation_data_formating["ES"]%self.get_Kata_final_score()
 		return txt
 	
 	def get_Kata_final_score(self):
 		self.write("final_score")
 		answer=self.readline().strip()
+		log(answer)
 		try:
 			return answer.split(" ")[1]
 		except:
@@ -281,53 +242,49 @@ class Kata_gtp(katagtp):
 		if line=="=\r\n":
 			line=self.readline()
 		move=(self.readline().split(" ")[-1])[:-2]
-		buff=line.split("info move")
+		buff=line.split("info move")[1:]
 		# while not self.stdout_queue.empty():
 		# 	while not self.stdout_queue.empty():
 		# 		buff.append(self.stdout_queue.get())
 		# 	sleep(.1)
 		
-		buff.reverse()
+		# buff.reverse()
 		
 		position_evaluation=Position()
 		
 		for err_line in buff:
 			#log(err_line)
-			try: #for comptability with Leela Zero dynamic komi
-				# if "average depth," in err_line and "max depth" in err_line:
-				# 	position_evaluation["average reading depth"]=float(err_line.split()[0])
-				# 	position_evaluation["max reading depth"]=int(err_line.split()[3])
-				# if " ->" in err_line:
-				if " " in err_line:
-					if err_line[0]==" ":
-						#log(err_line)
-						variation=Variation()
+			try:
+				"""E17 visits 1 utility -0.180115 winrate 0.413847 scoreMean -0.867224
+				 scoreStdev 21.69 scoreLead -0.867224 scoreSelfplay -1.71071 prior 0.00420893
+				 lcb -0.586153 utilityLcb -2.8 order 6 pv E17\r\n'
+				"""
+				#log(err_line)
+				variation=Variation()
 						
-						one_answer=err_line.strip().split(" ")[0]
-						variation["first move"]=one_answer
+				one_answer=err_line.strip().split(" ")[0]
+				variation["first move"]=one_answer
+					
+				nodes=err_line.strip().split("visits ")[1].split(" ")[0]
+				variation["playouts"]=nodes
 						
-						nodes=err_line.strip().split("visits ")[1].split(" ")[0]
-						variation["playouts"]=nodes
+				temp=err_line.split("winrate ")[1].split(' ')[0].strip()
+				winrate=str(round(100*float(temp),2))+"%"
+				variation["win rate"]=winrate #for Leela Zero, the value network is used as win rate
+					
+				score=err_line.split("scoreLead ")[1].split(' ')[0].strip()
+				variation["score"]=score
 						
-						temp=err_line.split("winrate ")[1].split(' ')[0].strip()
-						winrate=temp[2:4]+"."+temp[5:]+"%"
-						variation["win rate"]=winrate #for Leela Zero, the value network is used as win rate
-						
-						score=err_line.split("scoreMean ")[1].split(' ')[0].strip()
-						variation["score"]=score
-						
-						# prior lcb order
+				# prior lcb order
+				sequence=err_line.split("pv ")[1]
+				variation["sequence"]=sequence.upper()
 
-						sequence=err_line.split("pv ")[1]
-						variation["sequence"]=sequence.upper()
-
-						#answers=[[one_answer,sequence,value_network,policy_network,nodes]]+answers
-						position_evaluation['variations']=[variation]+position_evaluation['variations']
+				#answers=[[one_answer,sequence,value_network,policy_network,nodes]]+answers
+				position_evaluation['variations']+=[variation]
 			except:
 				pass
 
-			position_evaluation['move']=move
-
+		position_evaluation['move']=move
 		return position_evaluation
 
 
