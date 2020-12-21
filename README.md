@@ -6,9 +6,10 @@ forked from [pnprog/goreviewpartner](https://github.com/pnprog/goreviewpartner)
 
 In this version, KataGo can be used to analyze. But there may exist errors.
 
-## how to use
-Download the source code and use python version 2 to run.
-
+## How to use
+1. Download the source code and use python2 to run, or download the release.
+2. Download an engine and a neural net of katago.
+3. Modify parameters of katago(optional) and goreviewpartner.
 
 
 
